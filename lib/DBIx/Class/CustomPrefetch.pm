@@ -6,7 +6,7 @@ use strict;
 use base qw(DBIx::Class);
 use Module::Load;
 use Sub::Name;
-
+use DBIx::Class::ResultSet::CustomPrefetch;
 my $rs_class = 'DBIx::Class::ResultSet::CustomPrefetch';
 
 =head1 NAME
@@ -18,15 +18,17 @@ DBIx::Class::CustomPrefetch - Custom prefetches for DBIx::Class
 DBIx::Class onle allows joins for prefetches. But sometimes you can't use JOIN for prefetch. E.g. for prefetching
 many related objects to resultset with paging.
 
+Also you can use this module to create cross-database prefetches.
+
 This module provides other logic for prefetching data to resultsets.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -61,17 +63,16 @@ Args: $relation_name, $resultset_callback, $condition
 =cut
 
 sub custom_relation {
-    my $class         = shift;
-    my $name          = shift;
-    my @relation_args = @_;
-    no strict 'refs';
+    my ( $class, $name, @relation_args ) = @_;
+    $class->resultset_class('DBIx::Class::ResultSet::CustomPrefetch');
     $class->result_source_instance->{_custom_relations} ||= {};
     $class->result_source_instance->{_custom_relations}->{$name} =
-      [ $name, @_ ];
+      [ $name, @relation_args ];
     my $resultset = $relation_args[0];
     my ( $foreign_column, $self_column ) = %{ $relation_args[1] };
     $foreign_column =~ s/foreign.//;
     $self_column    =~ s/self.//;
+    no strict 'refs';
     *{"${class}::$name"} = subname $name => sub {
         my $self    = shift;
         my $arg     = shift;
@@ -86,6 +87,7 @@ sub custom_relation {
           : $resultset->()
           ->find( { $foreign_column => $self->get_column($self_column) } );
     };
+    return;
 }
 
 =head1 AUTHOR

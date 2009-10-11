@@ -1,5 +1,6 @@
 .cvsignore
 Changes
+Debian_CPANTS.txt
 inc/Module/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
@@ -16,8 +17,19 @@ lib/DBIx/Class/ResultSet/CustomPrefetch.pm
 Makefile.PL
 MANIFEST
 META.yml
+perlcritic.conf
 README
+svn-commit.tmp
 t/00-load.t
-t/boilerplate.t
+t/01-live.t
+t/changes.t
+t/fixme.t
+t/kwalitee.t
+t/lib/My/Schema.pm
+t/lib/My/Schema/Status.pm
+t/lib/My/Schema/User.pm
+t/lib/My/Storage.pm
+t/perlcritic.t
 t/pod-coverage.t
 t/pod.t
+t/sqlite.db

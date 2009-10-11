@@ -23,32 +23,33 @@ This module provides other logic for prefetching data to resultsets.
 =cut
 
 sub _prefetch_relation {
-    my $self          = shift;
-    my $accessor_name = shift;
-    my $rs_callback   = shift;
-    my $resultset     = ref $rs_callback ? $self->$rs_callback : $self->result_source->schema->resultset($rs_callback);
-    my $condition     = shift;
-    my $objects       = $self->get_cache;
-    my %ids = ();
+    my ( $self, $accessor_name, $rs_callback, $condition ) = @_;
+    my $resultset =
+      ref $rs_callback
+      ? $self->$rs_callback
+      : $self->result_source->schema->resultset($rs_callback);
+    my $objects   = $self->get_cache;
+    my %ids       = ();
     my %relations = ();
     my ( $foreign_accessor, $source_accessor ) = %$condition;
     $foreign_accessor =~ s/^foreign\.//;
     $source_accessor  =~ s/^self\.//;
+
     foreach (@$objects) {
         next unless defined $_->$source_accessor;
         $ids{ $_->$source_accessor } = 1;
     }
     %ids or return;
     my $related_source_alias = $resultset->current_source_alias;
-    my @related_objects = $resultset->search(
-            {
-                "$related_source_alias.$foreign_accessor" =>
-                  { -in => [ keys %ids ] }
-            },
-          )->all;
-    push @{$relations{$_->$foreign_accessor}}, $_ foreach @related_objects;
+    my @related_objects      = $resultset->search(
+        {
+            "$related_source_alias.$foreign_accessor" =>
+              { -in => [ keys %ids ] }
+        },
+    )->all;
+    push @{ $relations{ $_->$foreign_accessor } }, $_ foreach @related_objects;
     foreach (@$objects) {
-        $_->$accessor_name(@{ $relations{ $_->$source_accessor }} );
+        $_->$accessor_name( @{ $relations{ $_->$source_accessor } } );
     }
 }
 
@@ -59,11 +60,11 @@ Prefetches predefined relations
 =cut
 
 sub all {
-    my $self = shift;
-    my @objects = $self->next::method(@_);
-    $self->set_cache(\@objects);
-    foreach ( values %{$self->result_source->{_custom_relations}} ){
-        $self->_prefetch_relation( @$_ );
+    my ( $self, @args ) = @_;
+    my @objects = $self->next::method(@args);
+    $self->set_cache( \@objects );
+    foreach ( values %{ $self->result_source->{_custom_relations} } ) {
+        $self->_prefetch_relation(@$_);
     }
     return @objects;
 }
@@ -79,7 +80,6 @@ sub next {
     $self->all;
     $self->next::method(@_);
 }
-
 
 =head1 BUGS
 

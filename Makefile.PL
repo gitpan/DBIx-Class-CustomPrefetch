@@ -7,6 +7,8 @@ license  'perl';
 
 build_requires 'Test::More';
 requires 'DBIx::Class', '0.081';
+requires 'Module::Load';
+requires 'Sub::Name';
 requires 'DBIx::Class::VirtualColumns';
 
 auto_install;
