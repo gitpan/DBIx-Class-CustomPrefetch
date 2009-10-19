@@ -1,5 +1,7 @@
 Revision history for DBIx-Class-CustomPrefetch
 
+0.04    понедельник, 19 октября 2009 г. 19:50:21 (MSD)
+        Updated deps
 0.03    воскресенье, 11 октября 2009 г. 19:03:17 (MSD)
         Updated deps
         Created live tests
