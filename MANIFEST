@@ -1,4 +1,5 @@
 .cvsignore
+.portupload.yml
 Changes
 Debian_CPANTS.txt
 inc/Module/AutoInstall.pm
@@ -15,11 +16,10 @@ inc/Module/Install/WriteAll.pm
 lib/DBIx/Class/CustomPrefetch.pm
 lib/DBIx/Class/ResultSet/CustomPrefetch.pm
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
 META.yml
 perlcritic.conf
 README
-svn-commit.tmp
 t/00-load.t
 t/01-live.t
 t/changes.t

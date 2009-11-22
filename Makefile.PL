@@ -11,6 +11,7 @@ requires 'Module::Load';
 requires 'parent';
 requires 'Sub::Name';
 requires 'DBIx::Class::VirtualColumns';
+repository 'http://developers.rambler.ru/svn/perlmodules/DBIx-Class-CustomPrefetch/trunk';
 
 auto_install;
 

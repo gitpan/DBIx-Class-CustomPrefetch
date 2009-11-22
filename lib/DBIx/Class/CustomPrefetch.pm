@@ -24,11 +24,11 @@ This module provides other logic for prefetching data to resultsets.
 
 =head1 VERSION
 
-Version 0.04
+Version 0.07
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.08';
 
 =head1 SYNOPSIS
 
@@ -36,6 +36,7 @@ our $VERSION = '0.04';
 
     __PACKAGE__->load_components( qw(Core CustomPrefetch) );
     __PACKAGE__->add_column( qw(id artist_id) );
+    __PACKAGE__->resultset_class( 'DBIx::Class::ResultSet::CustomPrefetch' );
     __PACKAGE__->custom_relation( artist => sub { MyOtherResultSetClass->new } => {
         'foreign.id' => 'self.artist_id'
     });
@@ -63,8 +64,8 @@ Args: $relation_name, $resultset_callback, $condition
 =cut
 
 sub custom_relation {
+    die 'Usage: __PACKAGE__->custom_relation( name, resultset, columns );' if scalar(@_) != 4;
     my ( $class, $name, @relation_args ) = @_;
-    $class->resultset_class('DBIx::Class::ResultSet::CustomPrefetch');
     $class->result_source_instance->{_custom_relations} ||= {};
     $class->result_source_instance->{_custom_relations}->{$name} =
       [ $name, @relation_args ];
@@ -74,18 +75,18 @@ sub custom_relation {
     $self_column    =~ s/self.//;
     no strict 'refs';
     *{"${class}::$name"} = subname $name => sub {
-        my $self    = shift;
-        my $arg     = shift;
+        my ($self,$arg)    = @_;
         my $name    = [ caller(0) ]->[3];
         my $package = __PACKAGE__;
         $name =~ s/^${package}:://;
-        if ($arg) {
+        if (@_ > 1) {
             return $self->{"__cr_$name"} = $arg;
         }
-        exists $self->{"__cr_$name"}
-          ? $self->{"__cr_$name"}
-          : $resultset->()
-          ->find( { $foreign_column => $self->get_column($self_column) } );
+        return $self->{"__cr_$name" } if exists $self->{"__cr_$name"};
+        return $self->{"__cr_$name" } =
+        my $rs = $resultset->($self->result_source->schema);
+        return unless $rs;
+        $rs->find( { $foreign_column => $self->get_column($self_column) } );
     };
     return;
 }

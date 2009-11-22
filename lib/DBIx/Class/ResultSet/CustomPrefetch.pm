@@ -6,6 +6,7 @@ use warnings;
 use MRO::Compat;
 use mro 'c3';
 use parent 'DBIx::Class::ResultSet';
+use constant DEBUG => 0;
 
 =head1 NAME
 
@@ -26,8 +27,9 @@ sub _prefetch_relation {
     my ( $self, $accessor_name, $rs_callback, $condition ) = @_;
     my $resultset =
       ref $rs_callback
-      ? $self->$rs_callback
+      ? $rs_callback->( $self->result_source->schema, $self->{attrs} )
       : $self->result_source->schema->resultset($rs_callback);
+    return unless $resultset;  
     my $objects   = $self->get_cache;
     my %ids       = ();
     my %relations = ();
@@ -39,17 +41,19 @@ sub _prefetch_relation {
         next unless defined $_->$source_accessor;
         $ids{ $_->$source_accessor } = 1;
     }
-    %ids or return;
     my $related_source_alias = $resultset->current_source_alias;
-    my @related_objects      = $resultset->search(
+    my @related_objects;
+    @related_objects = $resultset->search(
         {
             "$related_source_alias.$foreign_accessor" =>
               { -in => [ keys %ids ] }
         },
-    )->all;
+    )->all if %ids;
     push @{ $relations{ $_->$foreign_accessor } }, $_ foreach @related_objects;
+    warn "Setting accessors:\n" if DEBUG;
     foreach (@$objects) {
-        $_->$accessor_name( @{ $relations{ $_->$source_accessor } } );
+        warn "$_ $accessor_name => $source_accessor\n" if DEBUG;
+        $_->$accessor_name( $relations{ $_->$source_accessor || '' }[0] );
     }
 }
 
@@ -61,9 +65,11 @@ Prefetches predefined relations
 
 sub all {
     my ( $self, @args ) = @_;
+    warn "Enter SUB: " . (ref $self) . "\n" if DEBUG;
     my @objects = $self->next::method(@args);
     $self->set_cache( \@objects );
     foreach ( values %{ $self->result_source->{_custom_relations} } ) {
+        warn "Prefetching $_->[0]\n" if DEBUG;
         $self->_prefetch_relation(@$_);
     }
     return @objects;

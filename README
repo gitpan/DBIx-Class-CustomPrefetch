@@ -1,52 +1,84 @@
-DBIx-Class-CustomPrefetch
+NAME
+    DBIx::Class::CustomPrefetch - Custom prefetches for DBIx::Class
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+DESCRIPTION
+    DBIx::Class onle allows joins for prefetches. But sometimes you can't
+    use JOIN for prefetch. E.g. for prefetching many related objects to
+    resultset with paging.
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+    Also you can use this module to create cross-database prefetches.
 
+    This module provides other logic for prefetching data to resultsets.
 
-INSTALLATION
+VERSION
+    Version 0.07
 
-To install this module, run the following commands:
+SYNOPSIS
+        package MyApp::Schema::Foo;
 
-	perl Makefile.PL
-	make
-	make test
-	make install
+        __PACKAGE__->load_components( qw(Core CustomPrefetch) );
+        __PACKAGE__->add_column( qw(id artist_id) );
+        __PACKAGE__->resultset_class( 'DBIx::Class::ResultSet::CustomPrefetch' );
+        __PACKAGE__->custom_relation( artist => sub { MyOtherResultSetClass->new } => {
+            'foreign.id' => 'self.artist_id'
+        });
 
-SUPPORT AND DOCUMENTATION
+    And your code:
 
-After installing, you can find documentation for this module with the
-perldoc command.
+        my $resultset = $schema->resultset('Foo')->search( undef, { rows => 10 } );
+        foreach ($resultset->all) {
+            say $_->artist->name;
+        }
 
-    perldoc DBIx::Class::CustomPrefetch
+    will make only two SQL requests:
 
-You can also look for information at:
+        SELECT id, artist_id FROM foo LIMIT 10;
+        SELECT * FROM artists WHERE id IN (1, 2, 3, 5, 8, 13, 21, 34, 55, 89);
 
-    RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=DBIx-Class-CustomPrefetch
+METHODS
+  custom_relation
+    Makes IN relation. In can be has_one, might_have or many_to_many
 
-    AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/DBIx-Class-CustomPrefetch
+    Args: $relation_name, $resultset_callback, $condition
 
-    CPAN Ratings
-        http://cpanratings.perl.org/d/DBIx-Class-CustomPrefetch
+AUTHOR
+    Andrey Kostenko, "<andrey at kostenko.name>"
 
-    Search CPAN
-        http://search.cpan.org/dist/DBIx-Class-CustomPrefetch/
+BUGS
+    Please report any bugs or feature requests to
+    "bug-dbix-class-customprefetch at rt.cpan.org", or through the web
+    interface at
+    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBIx-Class-CustomPrefetc
+    h>. I will be notified, and then you'll automatically be notified of
+    progress on your bug as I make changes.
 
+SUPPORT
+    You can find documentation for this module with the perldoc command.
 
-COPYRIGHT AND LICENCE
+        perldoc DBIx::Class::CustomPrefetch
 
-Copyright (C) 2009 Andrey Kostenko
+    You can also look for information at:
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+    *   RT: CPAN's request tracker
+
+        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=DBIx-Class-CustomPrefetch>
+
+    *   AnnoCPAN: Annotated CPAN documentation
+
+        <http://annocpan.org/dist/DBIx-Class-CustomPrefetch>
+
+    *   CPAN Ratings
+
+        <http://cpanratings.perl.org/d/DBIx-Class-CustomPrefetch>
+
+    *   Search CPAN
+
+        <http://search.cpan.org/dist/DBIx-Class-CustomPrefetch/>
+
+ACKNOWLEDGEMENTS
+COPYRIGHT & LICENSE
+    Copyright 2009 Andrey Kostenko, all rights reserved.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
 
