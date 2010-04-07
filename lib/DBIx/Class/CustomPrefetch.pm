@@ -24,11 +24,11 @@ This module provides other logic for prefetching data to resultsets.
 
 =head1 VERSION
 
-Version 0.07
+Version 0.09
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 SYNOPSIS
 
@@ -83,7 +83,6 @@ sub custom_relation {
             return $self->{"__cr_$name"} = $arg;
         }
         return $self->{"__cr_$name" } if exists $self->{"__cr_$name"};
-        return $self->{"__cr_$name" } =
         my $rs = $resultset->($self->result_source->schema);
         return unless $rs;
         $rs->find( { $foreign_column => $self->get_column($self_column) } );

@@ -1,5 +1,7 @@
 Revision history for DBIx-Class-CustomPrefetch
 
+0.09    вторник, 24 ноября 2009 г. 19:23:08 (MSK)
+        fixed f*cking bug. do not use 0.08
 0.08    четверг, 19 ноября 2009 г. 15:54:13 (MSK)
         better support for costom resultsets
 0.07    понедельник,  9 ноября 2009 г. 21:16:36 (MSK)

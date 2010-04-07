@@ -11,7 +11,7 @@ DESCRIPTION
     This module provides other logic for prefetching data to resultsets.
 
 VERSION
-    Version 0.07
+    Version 0.09
 
 SYNOPSIS
         package MyApp::Schema::Foo;
